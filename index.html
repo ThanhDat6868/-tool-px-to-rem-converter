@@ -1,0 +1,792 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PX to REM Converter - Chuyển đổi PX sang REM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .result-row:nth-child(even) { background: #f8fafc; }
+        input, select, button { outline: none; }
+    </style>
+</head>
+
+<body class="bg-slate-100 min-h-screen text-slate-800">
+
+<header class="bg-white shadow-sm">
+    <div class="max-w-5xl mx-auto px-4 py-5">
+        <h1 class="text-2xl font-bold text-blue-700">
+            PX to REM Converter
+        </h1>
+        <p class="text-sm text-gray-500 mt-1">
+            Công cụ chuyển đổi PX, REM và EM nhanh chóng
+        </p>
+    </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-8">
+
+    <!-- CÔNG CỤ CHUYỂN ĐỔI -->
+    <section class="bg-white rounded-xl shadow-sm p-5 mb-6">
+
+        <h2 class="text-xl font-bold mb-2">Công cụ chuyển đổi</h2>
+        <p class="text-sm text-gray-500 mb-5">
+            Chuyển đổi một giá trị hoặc cả thang kích thước cùng lúc.
+        </p>
+
+        <!-- HƯỚNG CHUYỂN ĐỔI -->
+        <label class="block font-semibold text-sm mb-2">
+            Hướng chuyển đổi
+        </label>
+
+        <select id="direction"
+            class="w-full border rounded-lg p-3 mb-5 focus:ring-2 focus:ring-blue-400">
+            <option value="px-rem">PX sang REM</option>
+            <option value="rem-px">REM sang PX</option>
+            <option value="px-em">PX sang EM</option>
+            <option value="em-px">EM sang PX</option>
+        </select>
+
+        <!-- GIÁ TRỊ ĐẦU VÀO -->
+        <label id="valueLabel" class="block font-semibold text-sm mb-2">
+            Giá trị PX
+        </label>
+
+        <textarea id="values"
+            rows="3"
+            class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-400"
+            placeholder="Ví dụ: 16, 24, 32"></textarea>
+
+        <p class="text-xs text-gray-500 mt-2">
+            Nhập tối đa 20 giá trị, ngăn cách bằng dấu phẩy hoặc khoảng trắng.
+            Có thể nhập kèm đơn vị như 24px, 1.5rem hoặc 2em.
+        </p>
+
+        <!-- CỠ CHỮ GỐC -->
+        <div class="mt-5">
+            <label class="block font-semibold text-sm mb-2">
+                Cỡ chữ gốc (Root font-size)
+            </label>
+
+            <input id="rootSize"
+                type="number"
+                min="0.01"
+                max="10000"
+                step="any"
+                value="16"
+                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-400">
+
+            <p class="text-xs text-gray-500 mt-2">
+                Dùng cho phép chuyển đổi PX ↔ REM.
+            </p>
+
+            <div class="flex flex-wrap gap-2 mt-3">
+                <button onclick="setRoot(10)"
+                    class="bg-slate-100 hover:bg-blue-100 px-3 py-2 rounded-lg text-sm">
+                    10px · 62.5%
+                </button>
+
+                <button onclick="setRoot(12)"
+                    class="bg-slate-100 hover:bg-blue-100 px-3 py-2 rounded-lg text-sm">
+                    12px
+                </button>
+
+                <button onclick="setRoot(14)"
+                    class="bg-slate-100 hover:bg-blue-100 px-3 py-2 rounded-lg text-sm">
+                    14px
+                </button>
+
+                <button onclick="setRoot(16)"
+                    class="bg-blue-100 text-blue-700 px-3 py-2 rounded-lg text-sm">
+                    16px · Mặc định
+                </button>
+
+                <button onclick="setRoot(18)"
+                    class="bg-slate-100 hover:bg-blue-100 px-3 py-2 rounded-lg text-sm">
+                    18px
+                </button>
+
+                <button onclick="setRoot(20)"
+                    class="bg-slate-100 hover:bg-blue-100 px-3 py-2 rounded-lg text-sm">
+                    20px
+                </button>
+            </div>
+        </div>
+
+        <!-- CỠ CHỮ PHẦN TỬ CHA -->
+        <div class="mt-5">
+            <label class="block font-semibold text-sm mb-2">
+                Cỡ chữ phần tử cha (Parent font-size)
+            </label>
+
+            <input id="parentSize"
+                type="number"
+                min="0.01"
+                max="10000"
+                step="any"
+                value="16"
+                class="w-full border rounded-lg p-3 focus:ring-2 focus:ring-blue-400">
+
+            <p class="text-xs text-gray-500 mt-2">
+                Dùng cho phép chuyển đổi PX ↔ EM. Giá trị EM phụ thuộc vào
+                cỡ chữ của phần tử cha.
+            </p>
+        </div>
+
+        <!-- ĐỘ CHÍNH XÁC -->
+        <div class="mt-5">
+            <label class="block font-semibold text-sm mb-2">
+                Độ chính xác thập phân
+            </label>
+
+            <select id="precision"
+                class="w-full border rounded-lg p-3">
+                <option value="0">0 chữ số</option>
+                <option value="2">2 chữ số</option>
+                <option value="4" selected>4 chữ số</option>
+                <option value="6">6 chữ số</option>
+            </select>
+        </div>
+
+        <!-- VÍ DỤ NHANH -->
+        <div class="mt-5">
+            <label class="block font-semibold text-sm mb-2">
+                Ví dụ nhanh
+            </label>
+
+            <div class="flex flex-wrap gap-2">
+                <button onclick="loadExample('16, 24, 32', 'px-rem', 16)"
+                    class="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-sm hover:bg-blue-100">
+                    16px → REM
+                </button>
+
+                <button onclick="loadExample('1, 1.5, 2', 'rem-px', 16)"
+                    class="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-sm hover:bg-blue-100">
+                    REM → PX
+                </button>
+
+                <button onclick="loadExample('18, 24, 36', 'px-em', 16, 18)"
+                    class="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-sm hover:bg-blue-100">
+                    PX → EM
+                </button>
+
+                <button onclick="loadExample('1, 1.5, 2', 'em-px', 16, 18)"
+                    class="bg-blue-50 text-blue-700 px-3 py-2 rounded-lg text-sm hover:bg-blue-100">
+                    EM → PX
+                </button>
+
+                <button onclick="loadExample('8, 10, 12, 14, 16, 18, 20, 24, 32, 48', 'px-rem', 16)"
+                    class="bg-green-50 text-green-700 px-3 py-2 rounded-lg text-sm hover:bg-green-100">
+                    Cả thang kích thước
+                </button>
+            </div>
+        </div>
+
+        <!-- NÚT -->
+        <div class="flex flex-wrap gap-3 mt-6">
+
+            <button onclick="convert()"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg">
+                Chuyển đổi
+            </button>
+
+            <button onclick="clearAll()"
+                class="bg-red-50 text-red-700 hover:bg-red-100 px-5 py-3 rounded-lg">
+                Xóa tất cả
+            </button>
+
+        </div>
+
+        <p id="error" class="text-red-600 text-sm mt-3"></p>
+
+    </section>
+
+    <!-- KẾT QUẢ -->
+    <section id="resultSection"
+        class="bg-white rounded-xl shadow-sm p-5 mb-6 hidden">
+
+        <div class="flex flex-wrap justify-between items-center gap-3 mb-5">
+            <div>
+                <h2 class="text-xl font-bold">Kết quả chuyển đổi</h2>
+                <p id="resultDescription" class="text-sm text-gray-500 mt-1"></p>
+            </div>
+
+            <button onclick="copyResults()"
+                class="bg-blue-50 text-blue-700 px-4 py-2 rounded-lg hover:bg-blue-100">
+                Sao chép kết quả
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left border-collapse">
+                <thead class="bg-slate-100">
+                    <tr>
+                        <th class="p-3 border">Giá trị gốc</th>
+                        <th class="p-3 border">Kết quả</th>
+                        <th class="p-3 border">Ghi chú</th>
+                    </tr>
+                </thead>
+
+                <tbody id="resultBody"></tbody>
+            </table>
+        </div>
+
+        <!-- CSS -->
+        <div class="mt-6">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="font-bold">CSS có thể sao chép</h3>
+
+                <button onclick="copyCSS()"
+                    class="text-blue-700 text-sm hover:underline">
+                    Sao chép CSS
+                </button>
+            </div>
+
+            <pre id="cssOutput"
+                class="bg-slate-900 text-green-300 rounded-lg p-4 text-sm overflow-x-auto whitespace-pre-wrap"></pre>
+        </div>
+
+    </section>
+
+    <!-- THƯỚC KÍCH THƯỚC -->
+    <section id="rulerSection"
+        class="bg-white rounded-xl shadow-sm p-5 mb-6 hidden">
+
+        <h2 class="text-xl font-bold mb-2">Thước kích thước</h2>
+
+        <p class="text-sm text-gray-500 mb-4">
+            Xem trước kích thước văn bản sau khi chuyển đổi.
+        </p>
+
+        <div id="rulerContent" class="space-y-4"></div>
+
+    </section>
+
+    <!-- XEM TRƯỚC KHẢ NĂNG TIẾP CẬN -->
+    <section id="accessibilitySection"
+        class="bg-white rounded-xl shadow-sm p-5 mb-6 hidden">
+
+        <h2 class="text-xl font-bold mb-2">
+            Xem trước khả năng tiếp cận
+        </h2>
+
+        <p class="text-sm text-gray-500 mb-4">
+            Thử thay đổi cỡ chữ gốc của trình duyệt để xem REM thay đổi
+            như thế nào.
+        </p>
+
+        <label class="block text-sm font-semibold mb-2">
+            Cỡ chữ gốc mô phỏng:
+            <span id="previewSizeLabel">16px</span>
+        </label>
+
+        <input id="previewSize"
+            type="range"
+            min="12"
+            max="28"
+            value="16"
+            class="w-full">
+
+        <div id="accessibilityPreview"
+            class="mt-4 p-5 bg-blue-50 rounded-lg space-y-3">
+        </div>
+
+    </section>
+
+    <!-- BẢNG THAM KHẢO -->
+    <section class="bg-white rounded-xl shadow-sm p-5 mb-6">
+
+        <h2 class="text-xl font-bold mb-2">
+            Bảng chuyển đổi PX sang REM
+        </h2>
+
+        <p class="text-sm text-gray-500 mb-4">
+            So sánh với cỡ chữ gốc 16px và 10px.
+        </p>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm text-center border-collapse">
+                <thead class="bg-slate-100">
+                    <tr>
+                        <th class="p-3 border">Pixel</th>
+                        <th class="p-3 border">REM (16px)</th>
+                        <th class="p-3 border">REM (10px)</th>
+                    </tr>
+                </thead>
+
+                <tbody id="referenceBody"></tbody>
+            </table>
+        </div>
+
+    </section>
+
+    <!-- CÔNG THỨC -->
+    <section class="bg-white rounded-xl shadow-sm p-5 mb-6">
+
+        <h2 class="text-xl font-bold mb-4">Công thức chuyển đổi</h2>
+
+        <div class="bg-blue-50 p-4 rounded-lg mb-3">
+            <p class="font-semibold text-blue-800">PX sang REM</p>
+            <p class="text-lg mt-2">REM = PX ÷ Root font-size</p>
+        </div>
+
+        <div class="bg-green-50 p-4 rounded-lg mb-3">
+            <p class="font-semibold text-green-800">REM sang PX</p>
+            <p class="text-lg mt-2">PX = REM × Root font-size</p>
+        </div>
+
+        <div class="bg-purple-50 p-4 rounded-lg mb-3">
+            <p class="font-semibold text-purple-800">PX sang EM</p>
+            <p class="text-lg mt-2">EM = PX ÷ Parent font-size</p>
+        </div>
+
+        <div class="bg-orange-50 p-4 rounded-lg">
+            <p class="font-semibold text-orange-800">EM sang PX</p>
+            <p class="text-lg mt-2">PX = EM × Parent font-size</p>
+        </div>
+
+        <div class="mt-4 text-sm text-gray-600">
+            <p><strong>Ví dụ:</strong></p>
+            <p class="mt-1">24px ÷ 16px = 1.5rem</p>
+            <p>1.5rem × 16px = 24px</p>
+            <p class="mt-3">
+                REM dựa trên cỡ chữ gốc của phần tử HTML.
+                EM dựa trên cỡ chữ của phần tử cha.
+            </p>
+        </div>
+
+    </section>
+
+    <!-- HƯỚNG DẪN -->
+    <section class="bg-white rounded-xl shadow-sm p-5">
+
+        <h2 class="text-xl font-bold mb-3">Hướng dẫn sử dụng</h2>
+
+        <ol class="list-decimal pl-5 space-y-2 text-sm text-gray-600">
+            <li>Chọn hướng chuyển đổi PX, REM hoặc EM.</li>
+            <li>Nhập một hoặc nhiều giá trị cần chuyển đổi.</li>
+            <li>Nhập cỡ chữ gốc và cỡ chữ phần tử cha nếu cần.</li>
+            <li>Chọn số chữ số thập phân.</li>
+            <li>Nhấn Chuyển đổi để xem kết quả.</li>
+            <li>Sao chép CSS và sử dụng trong dự án.</li>
+        </ol>
+
+    </section>
+
+</main>
+
+<footer class="text-center text-sm text-gray-500 py-6">
+    PX to REM Converter © 2026 - Công cụ chuyển đổi đơn vị miễn phí
+</footer>
+
+<script>
+    let convertedResults = [];
+    let cssText = "";
+
+    // Cập nhật tên đơn vị
+    function updateLabel() {
+        const direction = document.getElementById("direction").value;
+
+        const labels = {
+            "px-rem": "Giá trị PX",
+            "rem-px": "Giá trị REM",
+            "px-em": "Giá trị PX",
+            "em-px": "Giá trị EM"
+        };
+
+        document.getElementById("valueLabel").textContent =
+            labels[direction];
+    }
+
+    document.getElementById("direction")
+        .addEventListener("change", updateLabel);
+
+    // Định dạng số
+    function formatNumber(value) {
+        const precision = Number(
+            document.getElementById("precision").value
+        );
+
+        return Number(value.toFixed(precision)).toString();
+    }
+
+    // Chọn cỡ chữ gốc
+    function setRoot(value) {
+        document.getElementById("rootSize").value = value;
+    }
+
+    // Nạp ví dụ
+    function loadExample(values, direction, root, parent = 16) {
+        document.getElementById("values").value = values;
+        document.getElementById("direction").value = direction;
+        document.getElementById("rootSize").value = root;
+        document.getElementById("parentSize").value = parent;
+
+        updateLabel();
+        convert();
+    }
+
+    // Tách giá trị đầu vào
+    function parseValues(input, expectedUnit) {
+        const parts = input.trim().split(/[\s,;]+/).filter(Boolean);
+
+        if (parts.length === 0) {
+            throw new Error("Vui lòng nhập giá trị cần chuyển đổi.");
+        }
+
+        if (parts.length > 20) {
+            throw new Error("Chỉ được nhập tối đa 20 giá trị mỗi lần.");
+        }
+
+        return parts.map(part => {
+            const match = part.match(
+                /^(\d+(?:\.\d+)?|\.\d+)(px|rem|em)?$/i
+            );
+
+            if (!match) {
+                throw new Error("Giá trị không hợp lệ: " + part);
+            }
+
+            const value = Number(match[1]);
+            const unit = match[2];
+
+            if (unit && unit.toLowerCase() !== expectedUnit) {
+                throw new Error(
+                    "Vui lòng nhập giá trị theo đơn vị " +
+                    expectedUnit + ". Lỗi tại: " + part
+                );
+            }
+
+            if (!Number.isFinite(value) || value > 1000000000) {
+                throw new Error("Giá trị không hợp lệ hoặc quá lớn.");
+            }
+
+            return value;
+        });
+    }
+
+    // Chuyển đổi
+    function convert() {
+        const input = document.getElementById("values").value;
+        const direction = document.getElementById("direction").value;
+
+        const root = Number(document.getElementById("rootSize").value);
+        const parent = Number(document.getElementById("parentSize").value);
+
+        const errorBox = document.getElementById("error");
+        errorBox.textContent = "";
+
+        if (!Number.isFinite(root) || root <= 0 || root > 10000) {
+            errorBox.textContent =
+                "Cỡ chữ gốc phải lớn hơn 0 và không vượt quá 10.000.";
+            return;
+        }
+
+        if (!Number.isFinite(parent) || parent <= 0 || parent > 10000) {
+            errorBox.textContent =
+                "Cỡ chữ phần tử cha phải lớn hơn 0 và không vượt quá 10.000.";
+            return;
+        }
+
+        const units = {
+            "px-rem": ["px", "rem"],
+            "rem-px": ["rem", "px"],
+            "px-em": ["px", "em"],
+            "em-px": ["em", "px"]
+        };
+
+        const sourceUnit = units[direction][0];
+        const resultUnit = units[direction][1];
+
+        try {
+            const values = parseValues(input, sourceUnit);
+
+            convertedResults = values.map(value => {
+                let result;
+
+                if (direction === "px-rem") {
+                    result = value / root;
+                } else if (direction === "rem-px") {
+                    result = value * root;
+                } else if (direction === "px-em") {
+                    result = value / parent;
+                } else {
+                    result = value * parent;
+                }
+
+                return {
+                    original: value,
+                    result: result,
+                    sourceUnit: sourceUnit,
+                    resultUnit: resultUnit,
+                    direction: direction
+                };
+            });
+
+            displayResults(root, parent);
+        } catch (error) {
+            errorBox.textContent = error.message;
+            document.getElementById("resultSection").classList.add("hidden");
+            document.getElementById("rulerSection").classList.add("hidden");
+            document.getElementById("accessibilitySection").classList.add("hidden");
+        }
+    }
+
+    // Hiển thị kết quả
+    function displayResults(root, parent) {
+        const body = document.getElementById("resultBody");
+        body.innerHTML = "";
+
+        const cssLines = [];
+
+        convertedResults.forEach(item => {
+            const row = document.createElement("tr");
+            row.className = "result-row";
+
+            const original = formatNumber(item.original) + item.sourceUnit;
+            const result = formatNumber(item.result) + item.resultUnit;
+
+            let note = "";
+
+            if (item.direction === "px-rem") {
+                note = "Root: " + root + "px";
+                cssLines.push(
+                    `font-size: ${formatNumber(item.result)}rem; /* ${original} */`
+                );
+            } else if (item.direction === "rem-px") {
+                note = "Root: " + root + "px";
+                cssLines.push(
+                    `font-size: ${formatNumber(item.original)}rem; /* ${result} */`
+                );
+            } else if (item.direction === "px-em") {
+                note = "Parent: " + parent + "px";
+                cssLines.push(
+                    `font-size: ${formatNumber(item.result)}em; /* ${original} */`
+                );
+            } else {
+                note = "Parent: " + parent + "px";
+                cssLines.push(
+                    `font-size: ${formatNumber(item.original)}em; /* ${result} */`
+                );
+            }
+
+            [original, result, note].forEach(value => {
+                const cell = document.createElement("td");
+                cell.className = "p-3 border";
+                cell.textContent = value;
+                row.appendChild(cell);
+            });
+
+            body.appendChild(row);
+        });
+
+        cssText = cssLines.join("\n");
+
+        document.getElementById("cssOutput").textContent = cssText;
+
+        document.getElementById("resultDescription").textContent =
+            "Đã chuyển đổi " + convertedResults.length + " giá trị.";
+
+        document.getElementById("resultSection").classList.remove("hidden");
+
+        displayRuler();
+        displayAccessibility(root);
+    }
+
+    // Hiển thị thước kích thước
+    function displayRuler() {
+        const container = document.getElementById("rulerContent");
+        container.innerHTML = "";
+
+        convertedResults.forEach(item => {
+            let pixelSize;
+
+            if (item.resultUnit === "px") {
+                pixelSize = item.result;
+            } else if (item.resultUnit === "rem") {
+                pixelSize = item.result *
+                    Number(document.getElementById("rootSize").value);
+            } else {
+                pixelSize = item.result *
+                    Number(document.getElementById("parentSize").value);
+            }
+
+            // Giới hạn kích thước hiển thị để tránh vỡ giao diện
+            const previewSize = Math.max(8, Math.min(pixelSize, 100));
+
+            const row = document.createElement("div");
+            row.className = "border-b pb-3";
+
+            const label = document.createElement("p");
+            label.className = "text-sm text-gray-500 mb-2";
+            label.textContent =
+                formatNumber(item.original) + item.sourceUnit +
+                " = " + formatNumber(item.result) + item.resultUnit;
+
+            const sample = document.createElement("div");
+            sample.textContent = "Văn bản xem trước";
+            sample.style.fontSize = previewSize + "px";
+            sample.style.lineHeight = "1.4";
+
+            row.appendChild(label);
+            row.appendChild(sample);
+            container.appendChild(row);
+        });
+
+        document.getElementById("rulerSection").classList.remove("hidden");
+    }
+
+    // Xem trước khả năng tiếp cận cho REM
+    function displayAccessibility(root) {
+        const direction = document.getElementById("direction").value;
+        const section = document.getElementById("accessibilitySection");
+
+        if (direction !== "px-rem" && direction !== "rem-px") {
+            section.classList.add("hidden");
+            return;
+        }
+
+        section.classList.remove("hidden");
+
+        const slider = document.getElementById("previewSize");
+        const preview = document.getElementById("accessibilityPreview");
+
+        function updatePreview() {
+            const browserSize = Number(slider.value);
+
+            document.getElementById("previewSizeLabel").textContent =
+                browserSize + "px";
+
+            preview.innerHTML = "";
+
+            convertedResults.forEach(item => {
+                const remValue = item.direction === "px-rem"
+                    ? item.result
+                    : item.original;
+
+                const actualSize = remValue * browserSize;
+
+                const line = document.createElement("div");
+                line.className = "border-b border-blue-100 pb-3";
+
+                const label = document.createElement("p");
+                label.className = "text-xs text-blue-700 mb-1";
+                label.textContent =
+                    formatNumber(remValue) + "rem = " +
+                    formatNumber(actualSize) + "px";
+
+                const sample = document.createElement("p");
+                sample.textContent = "Văn bản xem trước";
+                sample.style.fontSize =
+                    Math.max(8, Math.min(actualSize, 100)) + "px";
+
+                line.appendChild(label);
+                line.appendChild(sample);
+                preview.appendChild(line);
+            });
+        }
+
+        slider.oninput = updatePreview;
+        slider.value = 16;
+        updatePreview();
+    }
+
+    // Sao chép kết quả
+    async function copyResults() {
+        if (convertedResults.length === 0) {
+            alert("Chưa có kết quả để sao chép!");
+            return;
+        }
+
+        const text = convertedResults.map(item =>
+            formatNumber(item.original) + item.sourceUnit +
+            " = " + formatNumber(item.result) + item.resultUnit
+        ).join("\n");
+
+        await copyText(text, "Đã sao chép kết quả!");
+    }
+
+    // Sao chép CSS
+    async function copyCSS() {
+        if (!cssText) {
+            alert("Chưa có CSS để sao chép!");
+            return;
+        }
+
+        await copyText(cssText, "Đã sao chép CSS!");
+    }
+
+    // Hàm sao chép chung
+    async function copyText(text, message) {
+        try {
+            await navigator.clipboard.writeText(text);
+            alert(message);
+        } catch (error) {
+            const textarea = document.createElement("textarea");
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+
+            const success = document.execCommand("copy");
+            textarea.remove();
+
+            alert(success ? message : "Không thể sao chép nội dung.");
+        }
+    }
+
+    // Xóa dữ liệu
+    function clearAll() {
+        document.getElementById("values").value = "";
+        document.getElementById("error").textContent = "";
+
+        document.getElementById("resultSection").classList.add("hidden");
+        document.getElementById("rulerSection").classList.add("hidden");
+        document.getElementById("accessibilitySection").classList.add("hidden");
+
+        convertedResults = [];
+        cssText = "";
+    }
+
+    // Bảng tham khảo
+    function createReferenceTable() {
+        const values = [
+            8, 10, 12, 14, 16, 18, 20,
+            24, 28, 32, 36, 40, 48, 56, 64, 72, 80, 96
+        ];
+
+        const body = document.getElementById("referenceBody");
+
+        values.forEach(px => {
+            const row = document.createElement("tr");
+            row.className = "result-row";
+
+            const results = [
+                px + "px",
+                formatTableNumber(px / 16) + "rem",
+                formatTableNumber(px / 10) + "rem"
+            ];
+
+            results.forEach(value => {
+                const cell = document.createElement("td");
+                cell.className = "p-3 border";
+                cell.textContent = value;
+                row.appendChild(cell);
+            });
+
+            body.appendChild(row);
+        });
+    }
+
+    function formatTableNumber(value) {
+        return Number(value.toFixed(3)).toString();
+    }
+
+    // Khởi chạy
+    updateLabel();
+    createReferenceTable();
+</script>
+
+</body>
+</html>
